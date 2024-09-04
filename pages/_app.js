@@ -7,6 +7,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { ConnectionProvider } from '@solana/wallet-adapter-react';
 import MainLayout from '../layout/mainLayout';
 import { useEffect, useState } from 'react';
+import { Head } from 'next/document';
 
 function MyApp({ Component, pageProps }) {
 	const [network, setNetwork] = useState('devnet'); // Default to devnet
@@ -40,10 +41,10 @@ function MyApp({ Component, pageProps }) {
 
 	return (
 		<>
-			<head>
+			<Head>
 				<title>SolLend</title>
 				<link rel="icon" href="/favicon.ico" />
-			</head>
+			</Head>
 			<html lang="en">
 				<body>
 					<ConnectionProvider endpoint={endpoint}>
