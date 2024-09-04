@@ -39,19 +39,29 @@ function MyApp({ Component, pageProps }) {
 	const wallets = [new PhantomWalletAdapter()];
 
 	return (
-		<ConnectionProvider endpoint={endpoint}>
-			<WalletProvider wallets={wallets} autoConnect>
-				<WalletModalProvider>
-					<MainLayout>
-						<Component
-							{...pageProps}
-							network={network}
-							setNetwork={setNetwork}
-						/>
-					</MainLayout>
-				</WalletModalProvider>
-			</WalletProvider>
-		</ConnectionProvider>
+		<>
+			<head>
+				<title>SolLend</title>
+				<link rel="icon" href="/favicon.ico" />
+			</head>
+			<html lang="en">
+				<body className={`${space.className}`}>
+					<ConnectionProvider endpoint={endpoint}>
+						<WalletProvider wallets={wallets} autoConnect>
+							<WalletModalProvider>
+								<MainLayout>
+									<Component
+										{...pageProps}
+										network={network}
+										setNetwork={setNetwork}
+									/>
+								</MainLayout>
+							</WalletModalProvider>
+						</WalletProvider>
+					</ConnectionProvider>
+				</body>
+			</html>
+		</>
 	);
 }
 
