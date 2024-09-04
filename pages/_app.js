@@ -45,7 +45,7 @@ function MyApp({ Component, pageProps }) {
 				<link rel="icon" href="/favicon.ico" />
 			</head>
 			<html lang="en">
-				<body className={`${space.className}`}>
+				<body>
 					<ConnectionProvider endpoint={endpoint}>
 						<WalletProvider wallets={wallets} autoConnect>
 							<WalletModalProvider>
