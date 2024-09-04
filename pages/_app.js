@@ -7,7 +7,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { ConnectionProvider } from '@solana/wallet-adapter-react';
 import MainLayout from '../layout/mainLayout';
 import { useEffect, useState } from 'react';
-import { Head } from 'next/document';
+import { Html, Head, Main, NextScript } from 'next/document'
 
 function MyApp({ Component, pageProps }) {
 	const [network, setNetwork] = useState('devnet'); // Default to devnet
@@ -40,29 +40,27 @@ function MyApp({ Component, pageProps }) {
 	const wallets = [new PhantomWalletAdapter()];
 
 	return (
-		<>
-			<Head>
+		<html>
+			<head>
 				<title>SolLend</title>
 				<link rel="icon" href="/favicon.ico" />
-			</Head>
-			<html lang="en">
-				<body>
-					<ConnectionProvider endpoint={endpoint}>
-						<WalletProvider wallets={wallets} autoConnect>
-							<WalletModalProvider>
-								<MainLayout>
-									<Component
-										{...pageProps}
-										network={network}
-										setNetwork={setNetwork}
-									/>
-								</MainLayout>
-							</WalletModalProvider>
-						</WalletProvider>
-					</ConnectionProvider>
-				</body>
-			</html>
-		</>
+			</head>
+			<body>
+				<ConnectionProvider endpoint={endpoint}>
+					<WalletProvider wallets={wallets} autoConnect>
+						<WalletModalProvider>
+							<MainLayout>
+								<Component
+									{...pageProps}
+									network={network}
+									setNetwork={setNetwork}
+								/>
+							</MainLayout>
+						</WalletModalProvider>
+					</WalletProvider>
+				</ConnectionProvider>
+			</body>
+		</html>
 	);
 }
 
