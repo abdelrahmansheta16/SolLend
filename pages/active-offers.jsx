@@ -27,6 +27,54 @@ class ActiveLoan {
 
 ActiveLoan.LEN = 8 + 32 + 32 + 32 + 32 + 32 + 8 + 8 + 1 + 1 + 1;
 
+const LoanCard = ({ loan, onLiquidate }) => {
+    const statusConfig = {
+        Active: { color: 'text-green-400', bgColor: 'bg-green-400 bg-opacity-10' },
+        Liquidated: { color: 'text-red-400', bgColor: 'bg-red-400 bg-opacity-10' },
+        Repaid: { color: 'text-blue-400', bgColor: 'bg-blue-400 bg-opacity-10' },
+    };
+
+    const { color, bgColor } = statusConfig[loan.status] || statusConfig.Active;
+    const isLiquidatable = loan.status === 'Active' && Date.now() > loan.repayTs.toNumber() * 1000;
+
+    return (
+        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <p className="text-xs text-gray-400 mb-1">Collection</p>
+                    <p className="text-sm font-medium">{loan.collection.toBase58().slice(0, 6)}...</p>
+                </div>
+                <div>
+                    <p className="text-xs text-gray-400 mb-1">Borrower</p>
+                    <p className="text-sm font-medium">{loan.borrower.toBase58().slice(0, 6)}...</p>
+                </div>
+                <div>
+                    <p className="text-xs text-gray-400 mb-1">Repayment Date</p>
+                    <p className="text-sm font-medium">
+                        {new Date(loan.repayTs.toNumber() * 1000).toLocaleDateString()}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-xs text-gray-400 mb-1">Status</p>
+                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${color} ${bgColor}`}>
+                        {loan.status}
+                    </span>
+                </div>
+            </div>
+            {isLiquidatable && (
+                <div className="mt-3 flex justify-end">
+                    <button
+                        onClick={() => onLiquidate(loan)}
+                        className="px-4 py-2 bg-red-500 text-gray-900 text-sm rounded-full hover:bg-red-400 transition-colors duration-300"
+                    >
+                        Liquidate
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const ActiveLoansScreen = () => {
     const router = useRouter();
     const wallet = useWallet();
@@ -179,65 +227,96 @@ const ActiveLoansScreen = () => {
         }
     };
 
+
+    const LoadingSpinner = () => (
+        <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500"></div>
+        </div>
+    );
+
     return (
-        <main className="flex flex-col justify-center items-center py-16 max-md:py-10 bg-gray-900 text-white min-h-screen">
-            <section className="flex flex-col w-[900px] max-md:w-full">
-                <header className="flex justify-between items-center px-5 max-w-full font-semibold text-white w-full max-md:mx-auto mb-8">
-                    <h2 className="text-4xl tracking-tighter leading-10 max-md:text-3xl max-md:leading-8">
+        <main className="flex flex-col justify-center items-center py-8 sm:py-16 bg-gray-900 text-white min-h-screen">
+            <section className="flex flex-col w-full max-w-6xl px-4">
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+                    <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-teal-400">
                         Loan History
                     </h2>
                     <button
                         onClick={() => router.push("/offers")}
-                        className="justify-center mx-4 px-6 py-3 bg-teal-500 shadow-xl rounded-xl flex gap-2 whitespace-nowrap text-gray-900 hover:bg-teal-400"
+                        className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 transition duration-300 text-sm sm:text-base"
                     >
                         VIEW AVAILABLE OFFERS
                     </button>
                 </header>
+
                 {error && (
-                    <div className="bg-red-500 text-white p-4 rounded-lg mb-4">
+                    <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 p-4 rounded-lg mb-4">
                         {error}
                     </div>
                 )}
+
                 {loading ? (
-                    <div className="text-center text-white mb-4">Loading...</div>
+                    <LoadingSpinner />
                 ) : (
-                    <article className="flex flex-col justify-center p-6 w-full rounded-lg border border-gray-700 bg-gray-800">
-                        {loans.length > 0 ? (
-                            <div className="flex flex-col gap-5 max-md:gap-3">
-                                <div className="flex gap-5 text-base font-bold tracking-wide leading-4 uppercase whitespace-nowrap text-teal-400 max-md:flex-wrap max-md:text-sm">
-                                    <div className="flex-1">Collection</div>
-                                    <div className="flex-1">Borrower</div>
-                                    <div className="flex-1">Repayment Date</div>
-                                    <div className="flex-1">Status</div>
-                                    <div className="flex-1">Actions</div>
-                                </div>
-                                <div className="flex flex-col mt-6 overflow-auto max-h-[500px] max-md:max-h-[300px] max-md:mt-4">
-                                    {loans.map((loan, index) => (
-                                        <div key={index} className="flex gap-5 items-center py-4 border-b border-gray-700">
-                                            <div className="flex-1 text-sm">{loan.collection.toBase58().slice(0, 6)}...</div>
-                                            <div className="flex-1 text-sm">{loan.borrower.toBase58().slice(0, 6)}...</div>
-                                            <div className="flex-1 text-sm">{new Date(loan.repayTs.toNumber() * 1000).toLocaleString()}</div>
-                                            <div className={`flex-1 text-sm font-semibold ${getStatusColor(loan.status)}`}>
-                                                {loan.status}
+                    <>
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+                            {loans.length > 0 ? (
+                                <div className="flex flex-col">
+                                    <div className="grid grid-cols-5 gap-4 p-4 bg-gray-750 text-sm font-medium text-teal-400 uppercase">
+                                        <div>Collection</div>
+                                        <div>Borrower</div>
+                                        <div>Repayment Date</div>
+                                        <div>Status</div>
+                                        <div>Actions</div>
+                                    </div>
+                                    <div className="divide-y divide-gray-700">
+                                        {loans.map((loan, index) => (
+                                            <div key={index} className="grid grid-cols-5 gap-4 p-4 items-center">
+                                                <div className="text-sm">{loan.collection.toBase58().slice(0, 6)}...</div>
+                                                <div className="text-sm">{loan.borrower.toBase58().slice(0, 6)}...</div>
+                                                <div className="text-sm">{new Date(loan.repayTs.toNumber() * 1000).toLocaleString()}</div>
+                                                <div className={`text-sm font-semibold ${getStatusColor(loan.status)}`}>
+                                                    {loan.status}
+                                                </div>
+                                                <div>
+                                                    {loan.status === 'Active' && Date.now() > loan.repayTs.toNumber() * 1000 && (
+                                                        <button
+                                                            onClick={() => handleLiquidate(loan)}
+                                                            className="px-4 py-2 bg-red-500 text-gray-900 text-sm rounded-full hover:bg-red-400 transition-colors duration-300"
+                                                        >
+                                                            Liquidate
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex-1">
-                                                {loan.status === 'Active' && Date.now() > loan.repayTs.toNumber() * 1000 && (
-                                                    <button
-                                                        onClick={() => handleLiquidate(loan)}
-                                                        className="px-4 py-2 bg-red-500 text-gray-900 rounded-full hover:bg-red-400"
-                                                    >
-                                                        Liquidate
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <p className='text-center text-lg max-md:text-base text-gray-400'>No loans found</p>
-                        )}
-                    </article>
+                            ) : (
+                                <div className="p-8 text-center text-gray-400">
+                                    No loans found
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {loans.length > 0 ? (
+                                loans.map((loan, index) => (
+                                    <LoanCard
+                                        key={index}
+                                        loan={loan}
+                                        onLiquidate={handleLiquidate}
+                                    />
+                                ))
+                            ) : (
+                                <div className="bg-gray-800 rounded-lg border border-gray-700 p-8 text-center">
+                                    <p className="text-gray-400">No loans found</p>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </section>
         </main>

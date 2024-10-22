@@ -131,6 +131,84 @@ const OrderItem = ({
     );
 };
 
+const OrderCard = ({
+    collectionId,
+    amountSOL,
+    createdAt,
+    completed,
+    isLiquidated,
+    repaymentDate,
+    onRepay
+}) => {
+    const [copied, setCopied] = useState(false);
+
+    const statusConfig = {
+        Completed: { color: 'bg-green-100 text-green-800', icon: <FiCheck className="w-4 h-4" /> },
+        Active: { color: 'bg-yellow-100 text-yellow-800', icon: <FiAlertCircle className="w-4 h-4" /> },
+        Liquidated: { color: 'bg-red-100 text-red-800', icon: <FiAlertCircle className="w-4 h-4" /> },
+    };
+
+    const formattedDate = new Date(repaymentDate).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+
+    let status = 'Active';
+    if (completed) status = 'Completed';
+    if (isLiquidated) status = 'Liquidated';
+
+    const { color, icon } = statusConfig[status];
+
+    return (
+        <div className="bg-gray-800 p-4 rounded-lg space-y-3">
+            <div className="flex justify-between items-start">
+                <div className="flex items-center">
+                    <span className="font-medium text-sm">
+                        {collectionId.slice(0, 6)}...{collectionId.slice(-4)}
+                    </span>
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(collectionId);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                        }}
+                        className="ml-2 text-gray-400 hover:text-teal-400 transition duration-150"
+                    >
+                        {copied ? <FiCheck className="w-4 h-4" /> : <FiCopy className="w-4 h-4" />}
+                    </button>
+                </div>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
+                    {icon}
+                    <span className="ml-1">{status}</span>
+                </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                    <p className="text-gray-400">Amount:</p>
+                    <p className="font-semibold text-teal-400">{amountSOL.toFixed(4)} SOL</p>
+                </div>
+                <div>
+                    <p className="text-gray-400">Due Date:</p>
+                    <p className="text-gray-300">{formattedDate}</p>
+                </div>
+            </div>
+
+            {status === 'Active' && new Date() <= new Date(repaymentDate) && (
+                <div className="flex justify-end mt-2">
+                    <button
+                        onClick={onRepay}
+                        className="px-4 py-2 bg-teal-500 text-gray-900 rounded-full hover:bg-teal-400 transition duration-300 text-sm"
+                    >
+                        Repay
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const OrderHistoryScreen = () => {
     const router = useRouter();
     const wallet = useWallet();
@@ -348,58 +426,85 @@ const OrderHistoryScreen = () => {
     };
 
     return (
-        <main className="flex flex-col justify-center items-center py-16 max-md:py-10 bg-gray-900 text-white min-h-screen">
-            <section className="flex flex-col w-full max-w-4xl px-4">
-                <header className="flex justify-between items-center mb-8">
-                    <h2 className="text-4xl font-bold tracking-tight text-teal-400">
+        <main className="flex flex-col justify-center items-center py-8 sm:py-16 bg-gray-900 text-white min-h-screen">
+            <section className="flex flex-col w-full max-w-6xl px-4">
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+                    <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-teal-400">
                         My Borrowed Orders
                     </h2>
                     <button
                         onClick={() => router.push("/offers")}
-                        className="px-6 py-3 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 transition duration-300"
+                        className="w-full sm:w-auto px-6 py-3 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 transition duration-300 text-sm sm:text-base"
                     >
                         View Available Offers
                     </button>
                 </header>
+
                 {error && (
-                    <div className="bg-red-500 text-white p-4 rounded-lg mb-4 animate-fade-in flex items-center">
-                        <FiAlertCircle className="w-5 h-5 mr-2" />
-                        <span>{error}</span>
+                    <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 p-4 rounded-lg mb-4 animate-fade-in flex items-center">
+                        <FiAlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+                        <span className="text-sm">{error}</span>
                     </div>
                 )}
+
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-teal-500"></div>
+                        <div className="animate-spin rounded-full h-16 w-16 sm:h-32 sm:w-32 border-t-2 border-b-2 border-teal-500"></div>
                     </div>
                 ) : (
-                    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-                        {orderHistories.length > 0 ? (
-                            <div className="divide-y divide-gray-700">
-                                <div className="grid grid-cols-5 gap-4 px-6 py-3 bg-gray-750 text-sm font-medium text-gray-400 uppercase tracking-wider">
-                                    <div>Collection ID</div>
-                                    <div>Amount (SOL)</div>
-                                    <div>Due Date</div>
-                                    <div>Status</div>
-                                    <div>Actions</div>
-                                </div>
+                    <>
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+                            {orderHistories.length > 0 ? (
                                 <div className="divide-y divide-gray-700">
-                                    {orderHistories.map((order, index) => (
-                                        <OrderItem
-                                            key={index}
-                                            {...order}
-                                            onRepay={() => handleRepay(order)}
-                                        />
-                                    ))}
+                                    <div className="grid grid-cols-5 gap-4 px-6 py-3 bg-gray-750 text-sm font-medium text-gray-400 uppercase tracking-wider">
+                                        <div>Collection ID</div>
+                                        <div>Amount (SOL)</div>
+                                        <div>Due Date</div>
+                                        <div>Status</div>
+                                        <div>Actions</div>
+                                    </div>
+                                    <div className="divide-y divide-gray-700">
+                                        {orderHistories.map((order, index) => (
+                                            <OrderItem
+                                                key={index}
+                                                {...order}
+                                                onRepay={() => handleRepay(order)}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <p className='text-center text-lg py-8 text-gray-400'>No borrowed orders yet</p>
-                        )}
-                    </div>
+                            ) : (
+                                <NoOrdersMessage />
+                            )}
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {orderHistories.length > 0 ? (
+                                orderHistories.map((order, index) => (
+                                    <OrderCard
+                                        key={index}
+                                        {...order}
+                                        onRepay={() => handleRepay(order)}
+                                    />
+                                ))
+                            ) : (
+                                <NoOrdersMessage />
+                            )}
+                        </div>
+                    </>
                 )}
             </section>
         </main>
     );
 };
+
+const NoOrdersMessage = () => (
+    <div className="flex flex-col items-center justify-center py-8 px-4 text-center bg-gray-800 rounded-lg">
+        <p className="text-lg text-gray-400 mb-4">No borrowed orders yet</p>
+        <p className="text-sm text-gray-500">Your borrowed orders will appear here</p>
+    </div>
+);
 
 export default OrderHistoryScreen;

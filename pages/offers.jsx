@@ -189,87 +189,154 @@ const AvailableOffersScreen = () => {
         });
     };
 
+    const OfferCard = ({ offer, onWithdraw, copiedId, onCopy }) => (
+        <div className="bg-gray-800 rounded-lg p-4 mb-4 shadow-lg">
+            <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center">
+                    <span className="font-medium text-sm">
+                        {offer.collectionId.slice(0, 6)}...{offer.collectionId.slice(-4)}
+                    </span>
+                    <button
+                        onClick={() => onCopy(offer.collectionId)}
+                        className="ml-2 text-gray-400 hover:text-teal-400 transition-colors duration-300"
+                    >
+                        {copiedId === offer.collectionId ? <FiCheck className="w-4 h-4" /> : <FiCopy className="w-4 h-4" />}
+                    </button>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+                <div>
+                    <p className="text-gray-400">Offer Amount:</p>
+                    <p className="font-medium">{offer.solAmount} SOL</p>
+                </div>
+                <div>
+                    <p className="text-gray-400">Repayment:</p>
+                    <p className="font-medium">{offer.repaymentAmount} SOL</p>
+                </div>
+                <div className="col-span-2">
+                    <p className="text-gray-400">Due Date:</p>
+                    <p className="font-medium">{offer.dueDate}</p>
+                </div>
+            </div>
+            <div className="flex justify-end">
+                <button
+                    onClick={() => onWithdraw(offer)}
+                    className="px-4 py-2 bg-red-500 text-gray-900 text-sm rounded-full hover:bg-red-400 transition-colors duration-300 flex items-center"
+                >
+                    Withdraw
+                    <FiChevronRight className="ml-1" />
+                </button>
+            </div>
+        </div>
+    );
+
     return (
-        <main className="flex flex-col justify-center items-center py-16 max-md:py-10 bg-gray-900 text-white min-h-screen">
+        <main className="flex flex-col justify-center items-center py-8 sm:py-16 bg-gray-900 text-white min-h-screen">
             <section className="flex flex-col w-full max-w-6xl px-4">
-                <header className="flex justify-between items-center mb-8">
-                    <h2 className="text-4xl font-bold tracking-tight text-teal-400">
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
+                    <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-teal-400">
                         Available Offers
                     </h2>
-                    <div className="flex space-x-4">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
                         <button
                             onClick={() => router.push("/create-offer")}
-                            className="px-6 py-3 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 transition duration-300"
+                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 transition duration-300 text-sm sm:text-base"
                         >
                             CREATE OFFER
                         </button>
                         <button
                             onClick={() => router.push("/active-offers")}
-                            className="px-6 py-3 bg-blue-500 text-gray-900 font-semibold rounded-lg hover:bg-blue-400 transition duration-300"
+                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 text-gray-900 font-semibold rounded-lg hover:bg-blue-400 transition duration-300 text-sm sm:text-base"
                         >
                             VIEW ACTIVE LOANS
                         </button>
                     </div>
                 </header>
+
                 {error && (
-                    <div className="bg-red-500 text-white p-4 rounded-lg mb-4 animate-fade-in">
+                    <div className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 p-4 rounded-lg mb-4 animate-fade-in">
                         {error}
                     </div>
                 )}
+
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
-                        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-teal-500"></div>
+                        <div className="animate-spin rounded-full h-16 w-16 sm:h-32 sm:w-32 border-t-2 border-b-2 border-teal-500"></div>
                     </div>
                 ) : (
-                    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-gray-700">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Collection ID</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Offer Amount (SOL)</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Repayment Amount (SOL)</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Due Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-700">
-                                {availableOffers.length > 0 ? (
-                                    availableOffers.map((offer, index) => (
-                                        <tr key={index} className="hover:bg-gray-750 transition duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <span className="font-medium">{offer.collectionId.slice(0, 6)}...{offer.collectionId.slice(-4)}</span>
-                                                    <button
-                                                        onClick={() => copyToClipboard(offer.collectionId)}
-                                                        className="ml-2 text-gray-400 hover:text-teal-400 transition duration-150"
-                                                    >
-                                                        {copiedId === offer.collectionId ? <FiCheck /> : <FiCopy />}
-                                                    </button>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{offer.solAmount}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{offer.repaymentAmount}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{offer.dueDate}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <button
-                                                    onClick={() => handleWithdraw(offer)}
-                                                    className="px-4 py-2 bg-red-500 text-gray-900 rounded-full hover:bg-red-400 transition duration-300"
-                                                >
-                                                    Withdraw
-                                                </button>
-                                            </td>
+                    <>
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block">
+                            <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+                                <table className="w-full">
+                                    <thead className="bg-gray-700">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Collection ID</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Offer Amount (SOL)</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Repayment Amount (SOL)</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Due Date</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Actions</th>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="5" className="px-6 py-4 text-center text-gray-400">
-                                            No available offers found
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-700">
+                                        {availableOffers.length > 0 ? (
+                                            availableOffers.map((offer, index) => (
+                                                <tr key={index} className="hover:bg-gray-750 transition duration-150">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <span className="font-medium">{offer.collectionId.slice(0, 6)}...{offer.collectionId.slice(-4)}</span>
+                                                            <button
+                                                                onClick={() => copyToClipboard(offer.collectionId)}
+                                                                className="ml-2 text-gray-400 hover:text-teal-400 transition duration-150"
+                                                            >
+                                                                {copiedId === offer.collectionId ? <FiCheck /> : <FiCopy />}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">{offer.solAmount}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">{offer.repaymentAmount}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">{offer.dueDate}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <button
+                                                            onClick={() => handleWithdraw(offer)}
+                                                            className="px-4 py-2 bg-red-500 text-gray-900 rounded-full hover:bg-red-400 transition duration-300"
+                                                        >
+                                                            Withdraw
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" className="px-6 py-4 text-center text-gray-400">
+                                                    No available offers found
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {availableOffers.length > 0 ? (
+                                availableOffers.map((offer, index) => (
+                                    <OfferCard
+                                        key={index}
+                                        offer={offer}
+                                        onWithdraw={handleWithdraw}
+                                        copiedId={copiedId}
+                                        onCopy={copyToClipboard}
+                                    />
+                                ))
+                            ) : (
+                                <div className="text-center text-gray-400 bg-gray-800 rounded-lg p-8">
+                                    No available offers found
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </section>
         </main>

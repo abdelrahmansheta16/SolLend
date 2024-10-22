@@ -358,22 +358,69 @@ export default function OfferGallery() {
     );
   }
 
+  const OfferCard = ({ offer }) => (
+    <div className="bg-gray-800 rounded-lg p-4 mb-4 shadow-lg">
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center">
+          <span className="font-medium text-sm">
+            {offer.collectionId.slice(0, 6)}...{offer.collectionId.slice(-4)}
+          </span>
+          <button
+            onClick={() => copyToClipboard(offer.collectionId)}
+            className="ml-2 text-gray-400 hover:text-teal-400 transition-colors duration-300"
+          >
+            {copiedId === offer.collectionId ? <FiCheck className="w-4 h-4" /> : <FiCopy className="w-4 h-4" />}
+          </button>
+        </div>
+        <button
+          onClick={() => openBorrowModal(offer)}
+          className="px-4 py-2 bg-teal-500 text-gray-900 text-sm rounded-full hover:bg-teal-400 transition-colors duration-300 transform hover:scale-105 flex items-center"
+        >
+          {loadingOffer === offer.offerPDA ? (
+            <FiLoader className="animate-spin" />
+          ) : (
+            <>
+              Borrow
+              <FiChevronRight className="ml-1" />
+            </>
+          )}
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div>
+          <p className="text-gray-400">Borrow Amount:</p>
+          <p className="font-medium">{offer.solAmount} SOL</p>
+        </div>
+        <div>
+          <p className="text-gray-400">Repayment:</p>
+          <p className="font-medium">{offer.repaymentAmount} SOL</p>
+        </div>
+        <div>
+          <p className="text-gray-400">Due Date:</p>
+          <p className="font-medium">{offer.dueDate}</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col items-center bg-gray-900 text-white min-h-screen p-8 w-full">
+    <div className="flex flex-col items-center bg-gray-900 text-white min-h-screen p-4 sm:p-8 w-full">
       <div className="w-full max-w-6xl">
-        <h2 className="text-3xl font-bold mb-6 text-teal-400">Explore Lending Offers</h2>
-        <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-teal-400">Explore Lending Offers</h2>
+
+        {/* Responsive search and sort controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
           <input
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search by collection ID"
-            className="px-4 py-2 rounded-md bg-gray-800 border border-gray-700 text-gray-300 w-64 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-300 ease-in-out"
+            className="px-4 py-2 rounded-md bg-gray-800 border border-gray-700 text-gray-300 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-300"
           />
-          <div className="flex items-center">
-            <label className="mr-2 text-gray-400">Sort by:</label>
+          <div className="flex items-center w-full sm:w-auto">
+            <label className="mr-2 text-gray-400 text-sm">Sort by:</label>
             <select
               onChange={(e) => handleSort(e.target.value)}
-              className="px-4 py-2 rounded-md bg-gray-800 border border-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-300 ease-in-out"
+              className="px-4 py-2 rounded-md bg-gray-800 border border-gray-700 text-gray-300 w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-300"
             >
               <option value="collectionId">Collection ID</option>
               <option value="solAmount">SOL Amount</option>
@@ -381,68 +428,83 @@ export default function OfferGallery() {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Collection ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Amount to Borrow</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Amount to Repay</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Due Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {currentOffers.map((offer, index) => (
-                <tr key={index} className="hover:bg-gray-750 transition-colors duration-300 ease-in-out">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <span className="font-medium">{offer.collectionId.slice(0, 6)}...{offer.collectionId.slice(-4)}</span>
-                      <button
-                        onClick={() => copyToClipboard(offer.collectionId)}
-                        className="ml-2 text-gray-400 hover:text-teal-400 transition-colors duration-300 ease-in-out"
-                      >
-                        {copiedId === offer.collectionId ? <FiCheck className="w-4 h-4" /> : <FiCopy className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{offer.solAmount} SOL</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{offer.repaymentAmount} SOL</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{offer.dueDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => openBorrowModal(offer)}
-                      className="px-4 py-2 bg-teal-500 text-gray-900 rounded-full hover:bg-teal-400 transition-colors duration-300 ease-in-out transform hover:scale-105"
-                    >
-                      {loadingOffer === offer.offerPDA ? (
-                        <FiLoader className="animate-spin mr-2" />
-                      ) : (
-                        'Borrow'
-                      )}
-                    </button>
-                  </td>
+        <div className="hidden md:block"> {/* Desktop table view */}
+          <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Collection ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Amount to Borrow</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Amount to Repay</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Due Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-teal-400 uppercase tracking-wider">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {currentOffers.map((offer, index) => (
+                  <tr key={index} className="hover:bg-gray-750 transition-colors duration-300 ease-in-out">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <span className="font-medium">{offer.collectionId.slice(0, 6)}...{offer.collectionId.slice(-4)}</span>
+                        <button
+                          onClick={() => copyToClipboard(offer.collectionId)}
+                          className="ml-2 text-gray-400 hover:text-teal-400 transition-colors duration-300 ease-in-out"
+                        >
+                          {copiedId === offer.collectionId ? <FiCheck className="w-4 h-4" /> : <FiCopy className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{offer.solAmount} SOL</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{offer.repaymentAmount} SOL</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{offer.dueDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => openBorrowModal(offer)}
+                        className="px-4 py-2 bg-teal-500 text-gray-900 rounded-full hover:bg-teal-400 transition-colors duration-300 ease-in-out transform hover:scale-105"
+                      >
+                        {loadingOffer === offer.offerPDA ? (
+                          <FiLoader className="animate-spin mr-2" />
+                        ) : (
+                          'Borrow'
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
+        <div className="block md:hidden"> {/* Mobile cards view */}
+          {currentOffers.map((offer, index) => (
+            <OfferCard key={index} offer={offer} />
+          ))}
+        </div>
+
+        {/* Responsive pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center mt-6 space-x-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-md ${currentPage === 1 ? "bg-gray-600 cursor-not-allowed" : "bg-teal-500 hover:bg-teal-400"
-                } transition-colors duration-300 ease-in-out`}
+              className={`px-3 py-1 rounded-md text-sm ${currentPage === 1
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-teal-500 hover:bg-teal-400"
+                } transition-colors duration-300`}
             >
               Previous
             </button>
-            <span className="mx-4 text-lg">Page {currentPage} of {totalPages}</span>
+            <span className="mx-2 text-sm sm:text-base flex items-center">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-md ${currentPage === totalPages ? "bg-gray-600 cursor-not-allowed" : "bg-teal-500 hover:bg-teal-400"
-                } transition-colors duration-300 ease-in-out`}
+              className={`px-3 py-1 rounded-md text-sm ${currentPage === totalPages
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-teal-500 hover:bg-teal-400"
+                } transition-colors duration-300`}
             >
               Next
             </button>
@@ -450,6 +512,7 @@ export default function OfferGallery() {
         )}
       </div>
 
+      {/* Responsive Modal */}
       <Modal
         isOpen={nftModalOpen}
         onRequestClose={closeModal}
@@ -467,60 +530,73 @@ export default function OfferGallery() {
             color: "#fff",
             width: "90%",
             maxWidth: "600px",
+            maxHeight: "90vh",
+            overflow: "auto"
           },
           overlay: {
             backgroundColor: "rgba(0, 0, 0, 0.75)",
           },
         }}
       >
-        <h2 className="text-2xl font-bold text-teal-400 mb-4">Select NFT as Collateral</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-teal-400 mb-4">Select NFT as Collateral</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {currentNFTs.map((nft, index) => (
             <div
               key={index}
-              className={`p-2 border rounded cursor-pointer transition-colors duration-150 ${selectedNFT === nft ? 'border-teal-400 bg-teal-900 bg-opacity-50' : 'border-gray-600 hover:border-teal-400'
+              className={`p-2 border rounded cursor-pointer transition-colors duration-150 ${selectedNFT === nft
+                ? 'border-teal-400 bg-teal-900 bg-opacity-50'
+                : 'border-gray-600 hover:border-teal-400'
                 }`}
               onClick={() => handleNFTSelection(nft)}
             >
-              <img src={nft.image} alt={nft.name} className="w-full h-32 object-cover mb-2 rounded" />
-              <p className="text-sm text-center truncate">{nft.name}</p>
+              <img
+                src={nft.image}
+                alt={nft.name}
+                className="w-full h-24 sm:h-32 object-cover mb-2 rounded"
+              />
+              <p className="text-xs sm:text-sm text-center truncate">{nft.name}</p>
             </div>
           ))}
         </div>
+
+        {/* Modal pagination and buttons */}
         {totalNFTPages > 1 && (
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-4 space-x-2">
             <button
               onClick={() => setNftCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={nftCurrentPage === 1}
-              className="px-2 py-1 bg-gray-700 rounded mr-2 hover:bg-gray-600 transition-colors duration-150"
+              className="px-2 py-1 text-sm bg-gray-700 rounded hover:bg-gray-600 transition-colors duration-150"
             >
               Previous
             </button>
-            <span>{nftCurrentPage} / {totalNFTPages}</span>
+            <span className="text-sm flex items-center">{nftCurrentPage} / {totalNFTPages}</span>
             <button
               onClick={() => setNftCurrentPage(prev => Math.min(prev + 1, totalNFTPages))}
               disabled={nftCurrentPage === totalNFTPages}
-              className="px-2 py-1 bg-gray-700 rounded ml-2 hover:bg-gray-600 transition-colors duration-150"
+              className="px-2 py-1 text-sm bg-gray-700 rounded hover:bg-gray-600 transition-colors duration-150"
             >
               Next
             </button>
           </div>
         )}
-        <div className="mt-4 flex justify-end">
+
+        <div className="mt-4 flex justify-end space-x-2">
           <button
             onClick={closeModal}
-            className="px-4 py-2 bg-gray-600 rounded-md text-gray-300 hover:bg-gray-500 transition-colors duration-150 mr-2"
+            className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-600 rounded-md text-sm text-gray-300 hover:bg-gray-500 transition-colors duration-150"
           >
             Cancel
           </button>
           <button
             onClick={confirmBorrow}
-            disabled={!selectedNFT}
-            className={`px-4 py-2 rounded-md ${selectedNFT ? 'bg-teal-500 text-gray-900 hover:bg-teal-400' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              } transition-colors duration-150`}
+            disabled={!selectedNFT || loadingBorrow}
+            className={`px-3 py-1 sm:px-4 sm:py-2 rounded-md text-sm ${selectedNFT && !loadingBorrow
+              ? 'bg-teal-500 text-gray-900 hover:bg-teal-400'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              } transition-colors duration-150 flex items-center`}
           >
             {loadingBorrow ? (
-              <FiLoader className="animate-spin mr-2" />
+              <><FiLoader className="animate-spin mr-1" /> Processing</>
             ) : (
               'Confirm Borrow'
             )}
